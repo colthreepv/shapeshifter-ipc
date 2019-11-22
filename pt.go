@@ -510,10 +510,17 @@ func ResolveAddr(addrStr string) (*net.TCPAddr, error) {
 	if portStr == "" {
 		return nil, net.InvalidAddrError(fmt.Sprintf("address string %q lacks a port part", addrStr))
 	}
-	ip := net.ParseIP(ipStr)
-	if ip == nil {
-		return nil, net.InvalidAddrError(fmt.Sprintf("not an IP string: %q", ipStr))
+
+	var ip net.IP
+	ips, err := net.LookupIP(ipStr)
+	if err != nil {
+		ip = net.ParseIP(ipStr)
+		if ip == nil {
+			return nil, net.InvalidAddrError(fmt.Sprintf("not a resolvabe hostname or IP string: %q", ipStr))
+		}
 	}
+	ip = ips[0]
+
 	port, err := parsePort(portStr)
 	if err != nil {
 		return nil, err
